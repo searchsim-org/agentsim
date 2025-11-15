@@ -1,0 +1,90 @@
+# Exploratory Mode: Knowledge expansion through iterative exploration
+#
+# This mode:
+# 1. Randomly samples 1 question from dataset as starting point
+# 2. Teacher executes workflow (standard or adaptive mode)
+# 3. Reflects on answer and generates new questions
+# 4. Repeats for X iterations, building knowledge base
+# 5. Consultant models can also suggest questions
+# 6. Tracks all queries explored and documents retrieved
+
+id: exploratory_gpt4o
+name: "Exploratory: GPT-4o Knowledge Expansion"
+mode: exploratory
+
+# Teacher model (primary explorer)
+teacher_models:
+  - name: gpt4o
+    model_id: gpt-4o
+    role: teacher
+    temperature: 0.7
+    # api_key: <from OPENAI_API_KEY>
+
+# Consultant models (provide alternative question suggestions)
+consultant_models:
+  - name: custom_uni
+    model_id: custom/deepseek-v31-4bit
+    role: consultant
+    temperature: 0.7
+    # api_key: <from CUSTOM_LLM_API_KEY>
+    # endpoint: <from CUSTOM_LLM_ENDPOINT>
+  
+  - name: mistral
+    model_id: mistral-large-latest
+    role: consultant
+    temperature: 0.7
+    # api_key: <from MISTRAL_API_KEY>
+
+# Verifier for external knowledge comparison
+verifier_model:
+  name: verifier
+  model_id: gpt-4o-mini
+  role: verifier
+  # api_key: <from OPENAI_API_KEY>
+
+# Workflow
+workflows:
+  - simple_rag
+
+# Dataset (pool to sample initial question from)
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 100  # Pool size (only 1 randomly sampled as starting point)
+
+# Execution parameters (per query)
+max_iterations: 2
+similarity_threshold: 0.65
+similarity_metric: embedding_cosine
+
+# Exploratory-specific configuration
+mode_config:
+  # Number of exploration rounds (questions to explore)
+  max_explorations: 7
+  
+  # Whether teacher has access to growing knowledge base
+  use_knowledge_base: true
+  
+  # Execution mode: "standard", "adaptive", or "auto" (teacher chooses per query)
+  execution_mode: auto
+  
+  # Temperature for reflection and question generation
+  reflection_temperature: 0.8
+  
+  # How many new questions to generate per reflection
+  questions_per_reflection: 3
+  
+  # External knowledge component for verification (optional)
+  external_knowledge_component: "external_search"
+  
+  # Allow consultant models to suggest questions
+  enable_consultant_reflection: true
+
+# Output
+output_dir: ./data/simulation_output/exploratory_gpt4o
+
+# Output includes:
+# - exploration_log.json: Full exploration trace
+# - queries_explored.json: All queries/questions explored
+# - documents_retrieved.json: All doc IDs retrieved with frequency
+# - knowledge_base.json: Complete knowledge base entries

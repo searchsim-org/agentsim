@@ -1,0 +1,60 @@
+# Multi-Teacher Simulation
+# Compare performance across multiple teacher models from different providers
+
+id: multi_teacher_comparison
+name: "Multi-Teacher Model Comparison"
+mode: standard
+
+# Multiple teacher models from different providers
+# API keys automatically loaded from environment variables
+teacher_models:
+  - name: gpt4o
+    model_id: gpt-4o
+    role: teacher
+    temperature: 0.7
+    # api_key: <from OPENAI_API_KEY>
+  
+  - name: claude
+    model_id: claude-sonnet-3.5
+    role: teacher
+    temperature: 0.7
+    # api_key: <from ANTHROPIC_API_KEY>
+  
+  - name: gemini
+    model_id: gemini-pro
+    role: teacher
+    temperature: 0.7
+    # api_key: <from GOOGLE_API_KEY>
+  
+  - name: mistral
+    model_id: mistral-large-latest
+    role: teacher
+    temperature: 0.7
+    # api_key: <from MISTRAL_API_KEY>
+
+# Optional: Consultant models for parallel answers
+consultant_models:
+  - name: claude_haiku
+    model_id: claude-haiku-3.5
+    role: consultant
+    # api_key: <from ANTHROPIC_API_KEY>
+
+# Workflow
+workflows:
+  - simple_rag
+
+# Dataset
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 50
+    sample_strategy: sequential
+
+# Execution parameters
+max_iterations: 3
+similarity_metric: embedding_cosine
+similarity_threshold: 0.65
+
+# Output (separate runs per teacher)
+output_dir: ./data/simulation_output/multi_teacher
+

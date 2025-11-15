@@ -1,0 +1,46 @@
+# Simple RAG Workflow
+# Minimal, straightforward retrieval-augmented generation
+# Good starting point for testing and simple use cases
+
+id: simple_rag
+name: "Simple RAG"
+description: "Simple retrieval-augmented generation workflow with minimal steps."
+reasoning_style: "simple"
+
+components:
+  # 1. Retrieve documents from ChatNoir
+  - type: chatnoir_retriever
+    config:
+      k: 20
+      corpus: "msmarco-v2.1-segmented"
+      multi_angle: false
+      k_per_query: 20
+
+  # 2. Filter and rank
+  - type: filter
+    config:
+      min_length: 30
+      max_length: 10000
+      min_score: 0.0
+      max_results: 10
+
+  # 3. Generate answer
+  - type: answer_drafter
+    config:
+      max_length: 300
+      temperature: 0.1
+      max_evidence: 10
+
+  # 4. Finalize
+  - type: finalizer
+    config:
+      format: "plain"
+      include_citations: false
+
+config:
+  max_steps: 4
+  max_iterations: 1
+  answer_threshold: 0.5
+  parallel_retrieval: false
+  reasoning_budget: "low"
+

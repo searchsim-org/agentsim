@@ -1,0 +1,72 @@
+# Standard Mode: Iterative execution with fixed workflow
+#
+# Note: API keys are automatically loaded from .env file
+# You can override specific models here or use env vars for all models
+
+id: standard_gpt4o
+name: "Standard: GPT-4o Fixed Workflow"
+mode: standard
+
+# Teacher model (API key from TEACHER_MODEL_API_KEY env var)
+teacher_models:
+  - name: gpt4o
+    model_id: gpt-4o
+    role: teacher
+    temperature: 0.7
+    # api_key: <will be loaded from .env>
+
+# Optional consultant models for parallel execution
+consultant_models:
+  - name: custom_uni
+    model_id: custom/deepseek-v31-4bit
+    role: consultant
+    temperature: 0.7
+    # api_key: <from CUSTOM_LLM_API_KEY>
+    # endpoint: <from CUSTOM_LLM_ENDPOINT>
+  
+  - name: mistral
+    model_id: mistral-large-latest
+    role: consultant
+    temperature: 0.7
+    # api_key: <from MISTRAL_API_KEY>
+
+# Verifier model for real-time checking (API key from VERIFIER_API_KEY)
+verifier_model:
+  name: verifier
+  model_id: gpt-4o-mini
+  role: verifier
+  temperature: 0.1
+  # api_key: <from env>
+
+# Workflows to use
+workflows:
+  - gpt4o_style
+
+# Datasets
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 1
+    sample_strategy: sequential
+
+# Execution parameters
+max_iterations: 5
+similarity_metric: embedding_cosine
+similarity_threshold: 0.65
+
+# Parallel execution for synthesis
+parallel_execution:
+  - component_type: answer_drafter
+    consultant_models: [custom_uni, mistral]
+
+# Real-time verification
+verification:
+  enabled: true
+  verifier_model: verifier
+  check_synthesis: true
+  check_claims: true
+  flag_hallucinations: true
+
+# Output
+output_dir: ./data/simulation_output/standard_gpt4o
+

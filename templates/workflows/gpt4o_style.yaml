@@ -1,0 +1,71 @@
+# GPT-4o Style Workflow
+# Breadth-first exploration with aggressive parallel retrieval and heavy reranking
+# Prioritizes recall over precision initially, then refines
+
+id: gpt4o_style
+name: "GPT-4o: Breadth-First Explorer"
+description: "Aggressive parallel retrieval with heavy reranking. Prioritizes recall over precision initially, then refines."
+reasoning_style: "breadth_first_then_refine"
+
+# Component pipeline
+components:
+  # 1. Planning: Decompose query into multiple search angles
+  - type: planner
+    config:
+      max_subgoals: 5
+      temperature: 0.7
+
+  # 2. Retrieval: ChatNoir web search
+  - type: chatnoir_retriever
+    config:
+      k: 50
+      corpus: "msmarco-v2.1-segmented"
+      multi_angle: true
+      k_per_query: 20
+
+  # 3. Processing: Rerank results using cross-encoder
+  - type: reranker
+    config:
+      method: "cross_encoder"
+      model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+      top_k: 25
+
+  - type: deduplicator
+    config:
+      method: "text_prefix"
+      prefix_length: 50
+      max_results: 20
+
+  # 4. Extract key evidence
+  - type: extractor
+    config:
+      max_spans: 15
+      span_window: 200
+
+  # 5. Synthesis: Generate answer
+  - type: answer_drafter
+    config:
+      max_length: 500
+      temperature: 0.1
+      max_evidence: 10
+
+  # 7. Attribution gate
+  - type: attribution_gate
+    config:
+      threshold: 0.75
+      strict_mode: false
+
+  # 8. Finalize
+  - type: finalizer
+    config:
+      format: "markdown"
+      include_citations: true
+
+# Global workflow configuration
+config:
+  max_steps: 15
+  max_iterations: 5
+  answer_threshold: 0.6
+  parallel_retrieval: true
+  reasoning_budget: "high"
+

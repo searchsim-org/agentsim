@@ -1,0 +1,72 @@
+# Gemini Pro Style Workflow
+# Fast, adaptive, balanced approach
+# Optimizes for speed while maintaining quality
+
+id: gemini_pro_style
+name: "Gemini-Pro: Adaptive Speedster"
+description: "Fast adaptive retrieval with dynamic k. Balances speed and quality."
+reasoning_style: "adaptive_fast"
+
+components:
+  # 1. Adaptive planning
+  - type: planner
+    config:
+      max_subgoals: 4
+      temperature: 0.6
+
+  # 2. Retrieval: ChatNoir balanced search
+  - type: chatnoir_retriever
+    config:
+      k: 30
+      corpus: "cw12"
+      multi_angle: true
+      k_per_query: 15
+
+  # 3. Efficient processing
+  - type: reranker
+    config:
+      top_k: 18
+
+  - type: deduplicator
+    config:
+      method: "text_prefix"
+      prefix_length: 50
+      max_results: 15
+
+  - type: extractor
+    config:
+      max_spans: 12
+      span_window: 250
+
+  # 4. Fast synthesis
+  - type: answer_drafter
+    config:
+      max_length: 450
+      temperature: 0.1
+      max_evidence: 10
+
+  # 5. Balanced verification
+  - type: fact_checker
+    config:
+      strict_mode: false
+      threshold: 0.78
+
+  - type: attribution_gate
+    config:
+      threshold: 0.78
+      strict_mode: false
+
+  # 6. Finalize
+  - type: finalizer
+    config:
+      format: "markdown"
+      include_citations: true
+
+config:
+  max_steps: 10
+  max_iterations: 4
+  answer_threshold: 0.65
+  parallel_retrieval: true
+  reasoning_budget: "medium"
+  adaptive_budget: true
+

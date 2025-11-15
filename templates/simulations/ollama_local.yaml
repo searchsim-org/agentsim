@@ -1,0 +1,34 @@
+# Local Simulation with Ollama Models
+
+id: ollama_local
+name: "Local: Ollama Models"
+mode: standard
+
+# Teacher model (local Ollama)
+teacher_models:
+  - name: llama3
+    model_id: ollama/llama3.1
+    role: teacher
+    temperature: 0.7
+    # No API key needed for Ollama
+
+# Consultant models (local)
+consultant_models:
+  - name: mistral_local
+    model_id: ollama/mistral
+    role: consultant
+    temperature: 0.7
+
+workflows:
+  - simple_rag
+
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 10
+
+max_iterations: 3
+similarity_threshold: 0.6
+
+output_dir: ./data/simulation_output/ollama_local
+

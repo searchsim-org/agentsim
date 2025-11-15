@@ -1,0 +1,81 @@
+# Exploratory Mode using preselected seeds and OpenSearch retrieval
+#
+# Usage Examples:
+# 1) Generate OpenSearch seeds (MSMARCO) then simulate:
+#      poetry run agentsim seed-select --dataset msmarco --split train --retrieval opensearch \
+#        --index msmarco-v2.1-segmented --num-seeds 1000 --output ./data/seeds/seeds_msmarco_train.jsonl
+#      poetry run agentsim simulate exploratory_seeds
+# 2) Generate ChatNoir seeds (Quasar-T) and swap the dataset + retrieval block below:
+#      poetry run agentsim seed-select --dataset quasar-t --split train --retrieval chatnoir \
+#        --index cw12 --num-seeds 200 --request-delay 0.3 --output ./data/seeds/seeds_quasart_train.jsonl
+#      # (Update the dataset path and set retrieval.type: chatnoir before running)
+#      poetry run agentsim simulate exploratory_seeds
+
+id: exploratory_seeds
+name: "Exploratory (Seeds): GPT-4o + OpenSearch"
+mode: exploratory
+
+# Teacher model (primary explorer)
+teacher_models:
+  - name: custom_uni
+    model_id: custom/deepseek-v31-4bit
+    role: consultant
+    temperature: 0.7
+
+# Consultant models (optional)
+consultant_models:
+  - name: gpt4o
+    model_id: gpt-4o 
+    role: teacher
+    temperature: 0.7
+
+  - name: mistral
+    model_id: mistral-large-latest
+    role: consultant
+    temperature: 0.7
+
+
+# Verifier for external knowledge comparison (optional)
+verifier_model:
+  name: verifier
+  model_id: gpt-4o-mini
+  role: verifier
+
+# Workflow
+workflows:
+  - simple_rag
+
+# Dataset: path to generated seeds
+datasets:
+  - name: quasart_seeds
+    path: ./data/seeds/seeds_quasart_train.jsonl
+    num_samples: -1
+    sample_strategy: sequential
+
+# Retrieval (OpenSearch default)
+retrieval:
+  type: chatnoir
+  enabled: true
+  index: cw12
+  top_k: 30
+  additional_config: {}
+
+# Execution parameters (per query)
+max_iterations: 2
+similarity_threshold: 0.65
+similarity_metric: embedding_cosine
+
+# Exploratory-specific configuration
+mode_config:
+  max_explorations: 7
+  use_knowledge_base: true
+  execution_mode: auto
+  reflection_temperature: 0.8
+  questions_per_reflection: 3
+  external_knowledge_component: "external_search"
+  enable_consultant_reflection: true
+
+# Output directory
+output_dir: ./data/simulation_output/exploratory_seeds/quasart
+
+

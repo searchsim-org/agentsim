@@ -1,0 +1,22 @@
+{
+  "corpus_version": "1.0",
+  "generated_date": "2025-11-14",
+  "statistics": {
+    "trace_steps": 27599,
+    "trajectory_steps": 27598,
+    "supervised_pairs": 5912,
+    "unique_documents": 53537,
+    "total_queries": 6970
+  },
+  "datasets": [
+    "MSMARCO",
+    "Quasar-T",
+    "CausalQA"
+  ],
+  "models": [
+    "GPT-4o",
+    "Mistral-Large",
+    "DeepSeek-V3"
+  ],
+  "description": "Unified Agent-Trace Corpus for LLM training"
+}

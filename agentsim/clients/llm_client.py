@@ -1,0 +1,327 @@
+"""Unified LLM client supporting multiple providers"""
+
+import asyncio
+
+import httpx
+from typing import Optional, Dict, Any
+from loguru import logger
+from sentence_transformers import SentenceTransformer
+
+from agentsim.config import config
+
+
+class LLMClient:
+    """Unified client for multiple LLM providers"""
+    
+    def __init__(self, default_model: Optional[str] = None):
+        self.timeout = config.LLM_TIMEOUT
+        self.max_retries = config.LLM_MAX_RETRIES
+        self.default_model = default_model or config.TEACHER_MODELS[0] if config.TEACHER_MODELS else "gpt-4o"
+        self._embedding_model: Optional[SentenceTransformer] = None
+        self._embedding_model_name: Optional[str] = None
+    
+    async def get_completion(
+        self,
+        prompt: str,
+        model: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+        return_usage: bool = False,
+        **kwargs
+    ) -> str | Dict[str, Any]:
+        """Get completion from any LLM provider
+        
+        Args:
+            prompt: The prompt text
+            model: Model ID (uses default if not specified)
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            return_usage: If True, returns dict with 'text' and 'usage' keys
+            
+        Returns:
+            str if return_usage=False (default), else dict with {'text': str, 'usage': dict}
+        """
+        
+        # Use default model if not specified
+        model = model or self.default_model
+        
+        provider = config.get_provider_from_model_id(model)
+        
+        if provider == "openai":
+            result = await self._openai_completion(prompt, model, temperature, max_tokens, return_usage)
+        elif provider == "anthropic":
+            result = await self._anthropic_completion(prompt, model, temperature, max_tokens, return_usage)
+        elif provider == "google":
+            result = await self._google_completion(prompt, model, temperature, max_tokens, return_usage)
+        elif provider == "mistral":
+            result = await self._mistral_completion(prompt, model, temperature, max_tokens, return_usage)
+        elif provider == "custom":
+            result = await self._custom_completion(prompt, model, temperature, max_tokens, return_usage)
+        elif provider == "ollama":
+            result = await self._ollama_completion(prompt, model, temperature, max_tokens, return_usage)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+        
+        return result
+    
+    async def _openai_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """OpenAI API completion"""
+        api_key = config.OPENAI_API_KEY
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY not configured")
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens or config.LLM_MAX_TOKENS
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["choices"][0]["message"]["content"]
+            
+            if return_usage:
+                usage = data.get("usage", {})
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0)
+                    }
+                }
+            return text
+    
+    async def _anthropic_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """Anthropic Claude API completion"""
+        api_key = config.ANTHROPIC_API_KEY
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY not configured")
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens or config.LLM_MAX_TOKENS
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["content"][0]["text"]
+            
+            if return_usage:
+                usage = data.get("usage", {})
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": usage.get("input_tokens", 0),
+                        "completion_tokens": usage.get("output_tokens", 0),
+                        "total_tokens": usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+                    }
+                }
+            return text
+    
+    async def _google_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """Google Gemini API completion"""
+        api_key = config.GOOGLE_API_KEY
+        if not api_key:
+            raise ValueError("GOOGLE_API_KEY not configured")
+        
+        # Remove gemini- prefix if present for API
+        model_name = model.replace("gemini-", "")
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "temperature": temperature,
+                        "maxOutputTokens": max_tokens or config.LLM_MAX_TOKENS
+                    }
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            
+            if return_usage:
+                # Google API includes usageMetadata
+                metadata = data.get("usageMetadata", {})
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": metadata.get("promptTokenCount", 0),
+                        "completion_tokens": metadata.get("candidatesTokenCount", 0),
+                        "total_tokens": metadata.get("totalTokenCount", 0)
+                    }
+                }
+            return text
+    
+    async def _mistral_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """Mistral API completion (OpenAI-compatible)"""
+        api_key = config.MISTRAL_API_KEY
+        if not api_key:
+            raise ValueError("MISTRAL_API_KEY not configured")
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                "https://api.mistral.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens or config.LLM_MAX_TOKENS
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["choices"][0]["message"]["content"]
+            
+            if return_usage:
+                usage = data.get("usage", {})
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0)
+                    }
+                }
+            return text
+    
+    async def _custom_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """Custom endpoint completion (OpenAI-compatible)"""
+        endpoint = config.CUSTOM_LLM_ENDPOINT
+        api_key = config.CUSTOM_LLM_API_KEY
+        
+        if not endpoint:
+            raise ValueError("CUSTOM_LLM_ENDPOINT not configured")
+        
+        # Remove custom/ prefix
+        model_name = model.replace("custom/", "")
+        
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{endpoint.rstrip('/')}/v1/chat/completions",
+                headers=headers,
+                json={
+                    "model": model_name,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": temperature,
+                    "max_tokens": max_tokens or config.LLM_MAX_TOKENS
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["choices"][0]["message"]["content"]
+            
+            if return_usage:
+                usage = data.get("usage", {})
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": usage.get("prompt_tokens", 0),
+                        "completion_tokens": usage.get("completion_tokens", 0),
+                        "total_tokens": usage.get("total_tokens", 0)
+                    }
+                }
+            return text
+    
+    async def _ollama_completion(self, prompt: str, model: str, temperature: float, max_tokens: Optional[int], return_usage: bool = False) -> str | Dict[str, Any]:
+        """Ollama local completion"""
+        endpoint = config.OLLAMA_ENDPOINT
+        if not endpoint:
+            raise ValueError("OLLAMA_ENDPOINT not configured")
+        
+        # Remove ollama/ prefix
+        model_name = model.replace("ollama/", "")
+        
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{endpoint.rstrip('/')}/api/generate",
+                json={
+                    "model": model_name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": temperature,
+                        "num_predict": max_tokens or config.LLM_MAX_TOKENS
+                    }
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["response"]
+            
+            if return_usage:
+                # Ollama doesn't provide token counts in standard API, return 0
+                return {
+                    "text": text,
+                    "usage": {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 0,
+                        "total_tokens": 0
+                    }
+                }
+            return text
+    
+    async def get_embedding(
+        self,
+        text: str,
+        model: Optional[str] = None
+    ) -> list:
+        """Get embedding vector for text using local SentenceTransformer."""
+        if not text:
+            raise ValueError("Text for embedding must not be empty")
+        
+        embedding_model = await self._ensure_embedding_model(model)
+        
+        loop = asyncio.get_running_loop()
+        vector = await loop.run_in_executor(
+            None,
+            lambda: embedding_model.encode(
+                text,
+                normalize_embeddings=True
+            ).tolist()
+        )
+        return vector
+    
+    async def _ensure_embedding_model(self, model: Optional[str] = None) -> SentenceTransformer:
+        """Load or reuse local embedding model."""
+        target_name = model or config.LOCAL_EMBEDDING_MODEL
+        if self._embedding_model is None or self._embedding_model_name != target_name:
+            logger.info(f"Loading local embedding model: {target_name}")
+            loop = asyncio.get_running_loop()
+            self._embedding_model = await loop.run_in_executor(
+                None,
+                lambda: SentenceTransformer(target_name)
+            )
+            self._embedding_model_name = target_name
+        return self._embedding_model
+

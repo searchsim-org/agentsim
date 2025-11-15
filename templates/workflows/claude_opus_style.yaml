@@ -1,0 +1,71 @@
+# Claude Opus Style Workflow
+# Deep, methodical, conservative approach with thorough fact-checking
+# Prioritizes precision and high attribution standards
+
+id: claude_opus_style
+name: "Claude-3-Opus: Deep Reasoner"
+description: "Methodical depth-first approach. Conservative retrieval, thorough fact-checking, high attribution standards."
+reasoning_style: "depth_first_conservative"
+
+components:
+  # 1. Planning: Conservative decomposition
+  - type: planner
+    config:
+      max_subgoals: 3
+      temperature: 0.5
+
+  # 2. Retrieval: ChatNoir focused search
+  - type: chatnoir_retriever
+    config:
+      k: 20
+      corpus: "cw12"
+      multi_angle: false
+
+  # 3. Processing: Careful reranking
+  - type: reranker
+    config:
+      top_k: 15
+
+  - type: filter
+    config:
+      min_length: 50
+      max_length: 5000
+      min_score: 0.1
+      max_results: 10
+
+  - type: extractor
+    config:
+      max_spans: 10
+      span_window: 300
+
+  # 4. Synthesis: Conservative answer generation
+  - type: answer_drafter
+    config:
+      max_length: 400
+      temperature: 0.05
+      max_evidence: 8
+
+  # 5. Thorough verification
+  - type: fact_checker
+    config:
+      strict_mode: true
+      threshold: 0.85
+
+  - type: attribution_gate
+    config:
+      threshold: 0.85
+      strict_mode: true
+
+  # 6. Finalize
+  - type: finalizer
+    config:
+      format: "markdown"
+      include_citations: true
+
+config:
+  max_steps: 12
+  max_iterations: 3
+  answer_threshold: 0.7
+  parallel_retrieval: false
+  reasoning_budget: "very_high"
+

@@ -1,0 +1,28 @@
+# Minimal Exploratory Template - Uses Environment Variables
+
+id: exploratory_minimal
+name: "Minimal Exploratory Mode"
+mode: exploratory
+
+# Models from environment:
+# - TEACHER_MODELS (primary explorer)
+# - CONSULTANT_MODELS (question suggestions)
+# - VERIFIER_MODEL (external knowledge check)
+
+workflows:
+  - simple_rag
+
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 50
+
+# Exploratory config
+mode_config:
+  max_explorations: 10
+  use_knowledge_base: true
+  execution_mode: auto
+  enable_consultant_reflection: true
+
+output_dir: ./data/simulation_output/exploratory_minimal
+

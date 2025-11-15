@@ -1,0 +1,36 @@
+# Adaptive Mode: Dynamic component selection
+
+id: adaptive_gpt4o
+name: "Adaptive: Dynamic Component Selection"
+mode: adaptive
+
+teacher_models:
+  - name: gpt4o
+    model_id: gpt-4o
+    role: teacher
+    temperature: 0.7
+
+workflows:
+  - simple_rag  # Base workflow, teacher can modify
+
+datasets:
+  - name: nfcorpus
+    path: ./data/datasets/nfcorpus.jsonl
+    num_samples: 50
+
+max_iterations: 8
+similarity_metric: embedding_cosine
+similarity_threshold: 0.6
+
+verification:
+  enabled: true
+  check_synthesis: true
+
+output_dir: ./data/simulation_output/adaptive_gpt4o
+
+# Adaptive mode config
+mode_config:
+  allow_component_reorder: true
+  allow_component_skip: true
+  decision_temperature: 0.8
+

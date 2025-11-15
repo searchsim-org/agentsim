@@ -1,0 +1,31 @@
+# Minimal simulation template - uses environment variables for configuration
+
+id: simple_standard
+name: "Simple Standard Simulation"
+mode: standard
+
+# Models configured via environment variables:
+# - TEACHER_MODEL, TEACHER_MODEL_API_KEY, TEACHER_TEMPERATURE
+# - CONSULTANT_MODELS (comma-separated)
+# - VERIFIER_MODEL, VERIFIER_API_KEY
+
+# If not set in env, defaults from .env will be used
+
+# Retrieval configured via:
+# - OPENSEARCH_HOST, OPENSEARCH_PORT, OPENSEARCH_INDEX
+# - OPENSEARCH_USER, OPENSEARCH_PASSWORD
+# - VECTOR_SEARCH_ENABLED
+# - CHATNOIR_ENABLED
+
+workflows:
+  - simple_rag
+
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 10
+
+# Optional: Override env defaults
+# max_iterations: 3
+# similarity_threshold: 0.7
+

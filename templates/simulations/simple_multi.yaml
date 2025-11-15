@@ -1,0 +1,22 @@
+# Minimal multi-teacher template using environment variables
+
+id: simple_multi_teacher
+name: "Simple Multi-Teacher from Environment"
+mode: standard
+
+# All teacher models defined in TEACHER_MODELS env var
+# Example: TEACHER_MODELS=gpt-4o,claude-sonnet-3.5,gemini-pro,mistral-large-latest
+# API keys from: OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY, MISTRAL_API_KEY
+
+workflows:
+  - simple_rag
+
+datasets:
+  - name: msmarco
+    path: ./data/datasets/msmarco_qa.jsonl
+    num_samples: 20
+
+# Optional overrides
+# max_iterations: 3
+# similarity_threshold: 0.7
+
