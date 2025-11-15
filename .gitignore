@@ -39,8 +39,8 @@ data/simulation_output/*
 !data/simulation_output/
 !data/simulation_output/README.md
 !data/simulation_output/.gitkeep
-!data/unified_corpus/
-!data/unified_corpus/**
+!data/corpus/
+!data/corpus/**
 *.db
 *.sqlite
 

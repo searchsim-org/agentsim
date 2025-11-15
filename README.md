@@ -33,9 +33,9 @@ AgentSim is a controlled environment for running multi-agent simulations over do
 
 AgentSim has generated a **unified training corpus** from 3,000 exploratory simulations:
 
-**Location**: `data/unified_corpus/`  
+**Location**: `data/corpus/`  
 **Format**: Compressed JSONL, ready for LLM training  
-**Documentation**: See `data/unified_corpus/README.md`
+**Documentation**: See `data/corpus/README.md`
 
 ---
 
@@ -105,7 +105,7 @@ agentsim/
 │   ├── seeds/                  # Seed queries for simulations
 │   ├── datasets/               # Raw datasets (gitignored)
 │   ├── simulation_output/      # Run outputs (gitignored)
-│   └── unified_corpus/         # Training-ready corpus 
+│   └── corpus/         # Training-ready corpus 
 │       ├── traces/             # Reasoning traces 
 │       ├── supervised/         # Training pairs
 │       ├── trajectories/       # High-level actions 
@@ -203,25 +203,25 @@ Creates publication-ready visualizations comparing models across datasets.
 ## Training Data Use Cases
 
 ### 1. Chain-of-Thought Training
-Use `unified_corpus/traces/all_traces.jsonl.gz`:
+Use `corpus/traces/all_traces.jsonl.gz`:
 - Step-by-step reasoning with thought → action → observation
 - LLM input/output for each step
 - Multi-model outputs for comparison
 
 ### 2. Imitation Learning
-Use `unified_corpus/supervised/all_supervised.jsonl.gz`:
+Use `corpus/supervised/all_supervised.jsonl.gz`:
 - Query-document-answer triples
 - Reasoning chains showing derivation
 - Multi-hop reasoning examples
 
 ### 3. Retrieval-Augmented Generation
-Use `unified_corpus/trajectories/all_trajectories.jsonl.gz`:
+Use `corpus/trajectories/all_trajectories.jsonl.gz`:
 - High-level decision sequences
 - Document retrieval patterns
 - Query reformulation strategies
 
 ### 4. Query Reformulation
-Use `unified_corpus/queries/all_queries.json.gz`:
+Use `corpus/queries/all_queries.json.gz`:
 - Original queries and reformulations
 - Semantic vs syntactic patterns
 - Model-specific strategies
@@ -314,7 +314,7 @@ agentsim validate <template_name>
 
 ## Related Resources
 
-- **Corpus Documentation**: `data/unified_corpus/README.md`
+- **Corpus Documentation**: `data/corpus/README.md`
 - **Evaluation Results**: `data/simulation_output/exploratory_seeds/PAPER_RESULTS.md`
 - **Methodology**: `data/simulation_output/exploratory_seeds/EVALUATION_README.md`
 - **Figures**: `data/simulation_output/exploratory_seeds/figures/`

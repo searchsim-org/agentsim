@@ -39,7 +39,7 @@ A unified, training-ready corpus of agent reasoning traces from 3,000 explorator
 ## Corpus Structure
 
 ```
-unified_corpus/
+corpus/
 ├── README.md                        # This file
 ├── corpus_stats.json               # Detailed statistics
 │
