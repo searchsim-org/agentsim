@@ -2,11 +2,11 @@
   "corpus_version": "1.0",
   "generated_date": "2025-11-14",
   "statistics": {
-    "trace_steps": 27599,
-    "trajectory_steps": 27598,
-    "supervised_pairs": 5912,
-    "unique_documents": 53537,
-    "total_queries": 6970
+    "trace_steps": 46840,
+    "trajectory_steps": 46837,
+    "supervised_pairs": 10221,
+    "unique_documents": 100342,
+    "total_queries": 12220
   },
   "datasets": [
     "MSMARCO",

@@ -12,7 +12,7 @@ These datasets are **excerpts** from the full-sized datasets used in our researc
 
 The **complete datasets** with is being made available on Zenodo.  *Coming soon*
 
-# Agent-Trace Corpus (ATC-27k) 
+# Agent-Trace Corpus (ATC-47k) 
 
 **Version**: 0.1.0  
 **Generated**: November 2025  
@@ -26,11 +26,11 @@ A unified, training-ready corpus of agent reasoning traces from 3,000 explorator
 
 | Metric | Count |
 |--------|-------|
-| **Reasoning Trace Steps** | 27,599 |
-| **Trajectory Steps** | 27,598 |
-| **Supervised Training Pairs** | 5,912 |
-| **Unique Documents** | 53,537 |
-| **Total Queries** | 6,970 |
+| **Reasoning Trace Steps** | 46,840 |
+| **Trajectory Steps** | 46,837 |
+| **Supervised Training Pairs** | 10,221 |
+| **Unique Documents** | 100,342 |
+| **Total Queries** | 12,220 |
 | **Datasets** | MSMARCO, Quasar-T, CausalQA |
 | **Models** | GPT-4o, Mistral-Large, DeepSeek-V3 |
 
@@ -44,19 +44,19 @@ corpus/
 ├── corpus_stats.json               # Detailed statistics
 │
 ├── traces/
-│   └── all_traces.jsonl.gz        # Complete reasoning traces (27.6K steps)
+│   └── all_traces.jsonl.gz        # Complete reasoning traces (46.8K steps)
 │
 ├── trajectories/
-│   └── all_trajectories.jsonl.gz  # High-level trajectories (27.6K steps)
+│   └── all_trajectories.jsonl.gz  # High-level trajectories (46.8K steps)
 │
 ├── supervised/
-│   └── all_supervised.jsonl.gz    # Query-document-answer pairs (5.9K)
+│   └── all_supervised.jsonl.gz    # Query-document-answer pairs (10.2K)
 │
 ├── retrievals/
-│   └── all_retrievals.json.gz     # Document retrieval logs (53.5K docs)
+│   └── all_retrievals.json.gz     # Document retrieval logs (100.3K docs)
 │
 └── queries/
-    └── all_queries.json.gz        # All queries executed (7K)
+    └── all_queries.json.gz        # All queries executed (12.2K)
 ```
 
 ---
@@ -249,4 +249,5 @@ All entries include `_source` metadata for traceability:
 | CausalQA | 4dc6e14f | GPT-4o |
 | CausalQA | 4c8f12ff | DeepSeek-V3 |
 | CausalQA | bb0fafe9 | Mistral-Large |
+| CausalQA | f4664f84 | GPT-4o | 
 
