@@ -312,11 +312,66 @@ agentsim validate <template_name>
 
 ---
 
+## Demo Guide
+
+This guide demonstrates the core capabilities of AgentSim for reviewers and new users.
+
+### Prerequisites
+
+```bash
+# Python 3.10+, Poetry
+git clone https://github.com/searchsim-org/agentsim.git
+cd agentsim
+poetry install
+cp .env.example .env
+# Add your API keys to .env
+```
+
+### Demo 1: Run a Standard Simulation
+
+Execute a single-query RAG workflow with GPT-4o:
+
+```bash
+poetry run agentsim simulate standard_gpt4o
+```
+
+**Expected Output**: `data/simulation_output/standard_gpt4o/` containing traces, trajectories, and training pairs.
+
+### Demo 2: Generate Training Data at Scale
+
+Run exploratory mode to generate multi-hop reasoning traces:
+
+```bash
+poetry run agentsim simulate exploratory_seeds
+```
+
+This executes 1,000 seed queries from MSMARCO, Quasar-T, and CausalQA datasets.
+
+**Expected Output**: Step-by-step reasoning logs with Active Validation flags for high-uncertainty steps.
+
+### Demo 3: Explore the Agent-Trace Corpus
+
+The pre-generated corpus is available in `data/corpus/`:
+
+```bash
+# View corpus statistics
+cat data/corpus/corpus_stats.json
+
+# Examine a trace sample
+zcat data/corpus/traces/all_traces.jsonl.gz | head -n 1 | jq .
+```
+
+### Visual Platform
+
+The interactive workflow designer is available at [agentsim.searchsim.org](https://agentsim.searchsim.org) for real-time simulation inspection and configuration.
+
+---
+
 ## Related Resources
 
+- **Visual Platform**: [agentsim.searchsim.org](https://agentsim.searchsim.org)
 - **Corpus Documentation**: `data/corpus/README.md`
-- **Evaluation Results**: `data/simulation_output/exploratory_seeds/PAPER_RESULTS.md`
-- **Methodology**: `data/simulation_output/exploratory_seeds/EVALUATION_README.md`
-- **Figures**: `data/simulation_output/exploratory_seeds/figures/`
+- **Seed Documentation**: `data/seeds/README.md`
+- **Simulation Output Documentation**: `data/simulation_output/README.md`
 
 
